@@ -2,51 +2,117 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Installment Calculator + Invoice</title>
+  <title>Installment Calculator</title>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <style>
-    body { font-family: Arial, sans-serif; background: #f5f5f5; padding: 20px; }
-    .container { max-width: 600px; margin: auto; background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
-    input { width: 100%; padding: 8px; margin: 6px 0; border-radius: 6px; border: 1px solid #ccc; }
-    h2 { text-align: center; }
-    .result { background: #fafafa; padding: 15px; margin-top: 15px; border-radius: 8px; }
-    button { margin-top: 10px; padding: 10px; border: none; background: #007bff; color: white; border-radius: 6px; cursor: pointer; }
-    button:hover { background: #0056b3; }
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: #f4f6f9;
+      margin: 0;
+      padding: 0;
+    }
+    header {
+      background: #007bff;
+      color: white;
+      padding: 15px;
+      text-align: center;
+      font-size: 20px;
+      font-weight: bold;
+    }
+    .container {
+      max-width: 800px;
+      margin: 30px auto;
+      background: white;
+      padding: 20px 30px;
+      border-radius: 12px;
+      box-shadow: 0 3px 10px rgba(0,0,0,0.15);
+    }
+    h2 {
+      color: #333;
+      border-bottom: 2px solid #eee;
+      padding-bottom: 5px;
+    }
+    .section {
+      margin-bottom: 20px;
+    }
+    label {
+      font-weight: bold;
+      display: block;
+      margin-top: 10px;
+    }
+    input {
+      width: 100%;
+      padding: 8px;
+      margin-top: 4px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+    }
+    button {
+      margin-top: 15px;
+      padding: 12px;
+      width: 48%;
+      font-size: 16px;
+      background: #007bff;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background 0.3s ease;
+    }
+    button:hover {
+      background: #0056b3;
+    }
+    .btn-group {
+      display: flex;
+      justify-content: space-between;
+    }
+    .result {
+      margin-top: 20px;
+      background: #f0f7ff;
+      padding: 15px;
+      border-left: 5px solid #007bff;
+      border-radius: 6px;
+    }
   </style>
 </head>
 <body>
+  <header>📱 Shop Installment Calculator</header>
+
   <div class="container">
-    <h2>📱 Installment Calculator + Invoice</h2>
+    <h2>Customer Information</h2>
+    <div class="section">
+      <label>Customer Name:</label>
+      <input type="text" id="customerName">
+      <label>CNIC:</label>
+      <input type="text" id="cnic">
+      <label>Phone Number:</label>
+      <input type="text" id="phone">
+      <label>Address:</label>
+      <input type="text" id="address">
+      <label>Purchase Date:</label>
+      <input type="date" id="purchaseDate">
+    </div>
 
-    <!-- Customer Info -->
-    <label>Customer Name</label>
-    <input type="text" id="customerName" placeholder="Enter customer name">
-    <label>CNIC</label>
-    <input type="text" id="cnic" placeholder="Enter CNIC number">
-    <label>Phone</label>
-    <input type="text" id="phone" placeholder="Enter phone number">
-    <label>Address</label>
-    <input type="text" id="address" placeholder="Enter address">
-    <label>Purchase Date</label>
-    <input type="date" id="purchaseDate">
+    <h2>Mobile & Finance Information</h2>
+    <div class="section">
+      <label>Mobile Name:</label>
+      <input type="text" id="mobileName">
+      <label>Purchase Price (Rs.):</label>
+      <input type="number" id="purchase">
+      <label>Cash Price (Rs.):</label>
+      <input type="number" id="cash">
+      <label>Months:</label>
+      <input type="number" id="months" value="12">
+      <label>Markup % per month:</label>
+      <input type="number" id="markup" value="3.9">
+      <label>Down Payment (Rs.):</label>
+      <input type="number" id="down" value="10000">
+    </div>
 
-    <!-- Mobile Info -->
-    <label>Mobile Model</label>
-    <input type="text" id="mobileName" placeholder="Enter mobile name/model">
-    <label>Purchase Price</label>
-    <input type="number" id="purchase" value="40000">
-    <label>Cash Price</label>
-    <input type="number" id="cash" value="41000">
-    <label>Months</label>
-    <input type="number" id="months" value="12">
-    <label>Markup % per Month</label>
-    <input type="number" id="markup" value="3.9">
-    <label>Down Payment</label>
-    <input type="number" id="down" value="10000">
-
-    <button onclick="calculate()">Calculate</button>
-    <button onclick="downloadPDF()">Download PDF</button>
+    <div class="btn-group">
+      <button onclick="calculate()">💰 Calculate</button>
+      <button onclick="downloadPDF()">📄 Download Invoice</button>
+    </div>
 
     <div class="result" id="result"></div>
   </div>
@@ -55,37 +121,38 @@
     let lastData = {};
 
     function calculate() {
-      const purchase = parseFloat(document.getElementById('purchase').value);
-      const cash = parseFloat(document.getElementById('cash').value);
-      const months = parseInt(document.getElementById('months').value);
-      const markup = parseFloat(document.getElementById('markup').value);
-      const down = parseFloat(document.getElementById('down').value);
+      const customerName = document.getElementById("customerName").value;
+      const cnic = document.getElementById("cnic").value;
+      const phone = document.getElementById("phone").value;
+      const address = document.getElementById("address").value;
+      const purchaseDate = document.getElementById("purchaseDate").value;
 
-      const totalInstallment = purchase * (1 + (markup/100) * months);
-      const financed = totalInstallment - down;
-      const monthly = financed / months;
-      const profit = totalInstallment - purchase;
-      const profitPercent = (profit / purchase) * 100;
+      const mobileName = document.getElementById("mobileName").value;
+      const purchase = parseFloat(document.getElementById("purchase").value);
+      const cash = parseFloat(document.getElementById("cash").value);
+      const months = parseInt(document.getElementById("months").value);
+      const markup = parseFloat(document.getElementById("markup").value);
+      const down = parseFloat(document.getElementById("down").value);
 
-      lastData = {
-        customerName: document.getElementById('customerName').value,
-        cnic: document.getElementById('cnic').value,
-        phone: document.getElementById('phone').value,
-        address: document.getElementById('address').value,
-        purchaseDate: document.getElementById('purchaseDate').value,
-        mobileName: document.getElementById('mobileName').value,
-        purchase, cash, months, markup, down,
-        totalInstallment, financed, monthly, profit, profitPercent
-      };
+      if (isNaN(purchase) || isNaN(cash) || isNaN(months) || isNaN(markup) || isNaN(down)) {
+        alert("Please enter all values correctly!");
+        return;
+      }
 
-      document.getElementById('result').innerHTML = `
-        <h3>Summary</h3>
-        <p><b>Customer:</b> ${lastData.customerName}</p>
-        <p><b>Mobile:</b> ${lastData.mobileName}</p>
-        <p><b>Total Installment Price:</b> Rs. ${totalInstallment.toLocaleString()}</p>
-        <p><b>Monthly Installment:</b> Rs. ${monthly.toLocaleString(undefined,{maximumFractionDigits:0})}</p>
-        <p><b>Total Profit:</b> Rs. ${profit.toLocaleString()}</p>
-        <p><b>Profit %:</b> ${profitPercent.toFixed(2)}%</p>
+      const financedAmount = cash - down;
+      const totalInstallment = financedAmount * Math.pow(1 + markup/100, months);
+      const monthly = totalInstallment / months;
+      const totalProfit = totalInstallment + down - purchase;
+      const profitPercent = (totalProfit / purchase) * 100;
+
+      lastData = { customerName, cnic, phone, address, purchaseDate, mobileName, purchase, cash, months, markup, down, totalInstallment, monthly, profit: totalProfit, profitPercent };
+
+      document.getElementById("result").innerHTML = `
+        <h3>📊 Installment Summary</h3>
+        <b>Total Installment Price:</b> Rs. ${totalInstallment.toFixed(0)}<br>
+        <b>Monthly Installment:</b> Rs. ${monthly.toFixed(0)}<br>
+        <b>Total Profit:</b> Rs. ${totalProfit.toFixed(0)}<br>
+        <b>Profit %:</b> ${profitPercent.toFixed(2)}%
       `;
     }
 
@@ -97,35 +164,44 @@
       const { jsPDF } = window.jspdf;
       const doc = new jsPDF();
 
-      // Load shop logo
       const img = new Image();
       img.crossOrigin = "Anonymous";
       img.src = "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSV5uY95rIUdU22qt3mJZZHKE8KeyNauvmI0HK3-8n_UYzSQW8c8vc3Yg4&s=10";
 
       img.onload = function () {
-        doc.addImage(img, "PNG", 80, 5, 50, 25); // logo
+        // Header with logo
+        doc.addImage(img, "PNG", 15, 10, 40, 20);
+        doc.setFontSize(18);
+        doc.text("Shop Installment Invoice", 70, 20);
 
-        doc.setFontSize(16);
-        doc.text("Installment Invoice", 70, 40);
-
+        // Customer Details
         doc.setFontSize(12);
-        doc.text(`Customer: ${lastData.customerName}`, 20, 60);
+        doc.text("Customer Information:", 20, 50);
+        doc.text(`Name: ${lastData.customerName}`, 20, 60);
         doc.text(`CNIC: ${lastData.cnic}`, 20, 70);
         doc.text(`Phone: ${lastData.phone}`, 20, 80);
         doc.text(`Address: ${lastData.address}`, 20, 90);
-        doc.text(`Purchase Date: ${lastData.purchaseDate}`, 20, 100);
+        doc.text(`Date: ${lastData.purchaseDate}`, 20, 100);
 
-        doc.text(`Mobile Model: ${lastData.mobileName}`, 20, 120);
-        doc.text(`Purchase Price: Rs. ${lastData.purchase}`, 20, 130);
-        doc.text(`Cash Price: Rs. ${lastData.cash}`, 20, 140);
-        doc.text(`Months: ${lastData.months}`, 20, 150);
-        doc.text(`Markup: ${lastData.markup}%`, 20, 160);
-        doc.text(`Down Payment: Rs. ${lastData.down}`, 20, 170);
+        // Mobile Details
+        doc.text("Mobile & Finance Details:", 20, 120);
+        doc.text(`Mobile: ${lastData.mobileName}`, 20, 130);
+        doc.text(`Purchase Price: Rs. ${lastData.purchase}`, 20, 140);
+        doc.text(`Cash Price: Rs. ${lastData.cash}`, 20, 150);
+        doc.text(`Months: ${lastData.months}`, 20, 160);
+        doc.text(`Markup: ${lastData.markup}% per month`, 20, 170);
+        doc.text(`Down Payment: Rs. ${lastData.down}`, 20, 180);
 
-        doc.text(`Total Installment Price: Rs. ${lastData.totalInstallment}`, 20, 190);
-        doc.text(`Monthly Installment: Rs. ${lastData.monthly.toFixed(0)}`, 20, 200);
-        doc.text(`Total Profit: Rs. ${lastData.profit}`, 20, 210);
-        doc.text(`Profit %: ${lastData.profitPercent.toFixed(2)}%`, 20, 220);
+        // Finance Results
+        doc.text("Installment Summary:", 20, 200);
+        doc.text(`Total Installment Price: Rs. ${lastData.totalInstallment.toFixed(0)}`, 20, 210);
+        doc.text(`Monthly Installment: Rs. ${lastData.monthly.toFixed(0)}`, 20, 220);
+        doc.text(`Total Profit: Rs. ${lastData.profit.toFixed(0)}`, 20, 230);
+        doc.text(`Profit %: ${lastData.profitPercent.toFixed(2)}%`, 20, 240);
+
+        // Footer
+        doc.setFontSize(10);
+        doc.text("Thank you for choosing our shop!", 70, 280);
 
         doc.save(`Invoice_${lastData.customerName}.pdf`);
       };
