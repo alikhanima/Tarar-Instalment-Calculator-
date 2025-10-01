@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Installment Calculator + Invoice</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <style>
+    body { font-family: Arial, sans-serif; background: #f5f5f5; padding: 20px; }
+    .container { max-width: 600px; margin: auto; background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
+    input { width: 100%; padding: 8px; margin: 6px 0; border-radius: 6px; border: 1px solid #ccc; }
+    h2 { text-align: center; }
+    .result { background: #fafafa; padding: 15px; margin-top: 15px; border-radius: 8px; }
+    button { margin-top: 10px; padding: 10px; border: none; background: #007bff; color: white; border-radius: 6px; cursor: pointer; }
+    button:hover { background: #0056b3; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>📱 Installment Calculator + Invoice</h2>
+
+    <!-- Customer Info -->
+    <label>Customer Name</label>
+    <input type="text" id="customerName" placeholder="Enter customer name">
+    <label>CNIC</label>
+    <input type="text" id="cnic" placeholder="Enter CNIC number">
+    <label>Phone</label>
+    <input type="text" id="phone" placeholder="Enter phone number">
+    <label>Address</label>
+    <input type="text" id="address" placeholder="Enter address">
+    <label>Purchase Date</label>
+    <input type="date" id="purchaseDate">
+
+    <!-- Mobile Info -->
+    <label>Mobile Model</label>
+    <input type="text" id="mobileName" placeholder="Enter mobile name/model">
+    <label>Purchase Price</label>
+    <input type="number" id="purchase" value="40000">
+    <label>Cash Price</label>
+    <input type="number" id="cash" value="41000">
+    <label>Months</label>
+    <input type="number" id="months" value="12">
+    <label>Markup % per Month</label>
+    <input type="number" id="markup" value="3.9">
+    <label>Down Payment</label>
+    <input type="number" id="down" value="10000">
+
+    <button onclick="calculate()">Calculate</button>
+    <button onclick="downloadPDF()">Download PDF</button>
+
+    <div class="result" id="result"></div>
+  </div>
+
+  <script>
+    let lastData = {};
+
+    function calculate() {
+      const purchase = parseFloat(document.getElementById('purchase').value);
+      const cash = parseFloat(document.getElementById('cash').value);
+      const months = parseInt(document.getElementById('months').value);
+      const markup = parseFloat(document.getElementById('markup').value);
+      const down = parseFloat(document.getElementById('down').value);
+
+      const totalInstallment = purchase * (1 + (markup/100) * months);
+      const financed = totalInstallment - down;
+      const monthly = financed / months;
+      const profit = totalInstallment - purchase;
+      const profitPercent = (profit / purchase) * 100;
+
+      lastData = {
+        customerName: document.getElementById('customerName').value,
+        cnic: document.getElementById('cnic').value,
+        phone: document.getElementById('phone').value,
+        address: document.getElementById('address').value,
+        purchaseDate: document.getElementById('purchaseDate').value,
+        mobileName: document.getElementById('mobileName').value,
+        purchase, cash, months, markup, down,
+        totalInstallment, financed, monthly, profit, profitPercent
+      };
+
+      document.getElementById('result').innerHTML = `
+        <h3>Summary</h3>
+        <p><b>Customer:</b> ${lastData.customerName}</p>
+        <p><b>Mobile:</b> ${lastData.mobileName}</p>
+        <p><b>Total Installment Price:</b> Rs. ${totalInstallment.toLocaleString()}</p>
+        <p><b>Monthly Installment:</b> Rs. ${monthly.toLocaleString(undefined,{maximumFractionDigits:0})}</p>
+        <p><b>Total Profit:</b> Rs. ${profit.toLocaleString()}</p>
+        <p><b>Profit %:</b> ${profitPercent.toFixed(2)}%</p>
+      `;
+    }
+
+    async function downloadPDF() {
+      if (!lastData.customerName) {
+        alert("Please calculate first!");
+        return;
+      }
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF();
+
+      // Load shop logo
+      const img = new Image();
+      img.crossOrigin = "Anonymous";
+      img.src = "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSV5uY95rIUdU22qt3mJZZHKE8KeyNauvmI0HK3-8n_UYzSQW8c8vc3Yg4&s=10";
+
+      img.onload = function () {
+        doc.addImage(img, "PNG", 80, 5, 50, 25); // logo
+
+        doc.setFontSize(16);
+        doc.text("Installment Invoice", 70, 40);
+
+        doc.setFontSize(12);
+        doc.text(`Customer: ${lastData.customerName}`, 20, 60);
+        doc.text(`CNIC: ${lastData.cnic}`, 20, 70);
+        doc.text(`Phone: ${lastData.phone}`, 20, 80);
+        doc.text(`Address: ${lastData.address}`, 20, 90);
+        doc.text(`Purchase Date: ${lastData.purchaseDate}`, 20, 100);
+
+        doc.text(`Mobile Model: ${lastData.mobileName}`, 20, 120);
+        doc.text(`Purchase Price: Rs. ${lastData.purchase}`, 20, 130);
+        doc.text(`Cash Price: Rs. ${lastData.cash}`, 20, 140);
+        doc.text(`Months: ${lastData.months}`, 20, 150);
+        doc.text(`Markup: ${lastData.markup}%`, 20, 160);
+        doc.text(`Down Payment: Rs. ${lastData.down}`, 20, 170);
+
+        doc.text(`Total Installment Price: Rs. ${lastData.totalInstallment}`, 20, 190);
+        doc.text(`Monthly Installment: Rs. ${lastData.monthly.toFixed(0)}`, 20, 200);
+        doc.text(`Total Profit: Rs. ${lastData.profit}`, 20, 210);
+        doc.text(`Profit %: ${lastData.profitPercent.toFixed(2)}%`, 20, 220);
+
+        doc.save(`Invoice_${lastData.customerName}.pdf`);
+      };
+    }
+  </script>
+</body>
+</html>
